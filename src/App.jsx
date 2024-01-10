@@ -12,6 +12,10 @@ export default function App() {
   const [newSearch, setNewSearch] = useState('');
   const [showDelete, setShowDelete] = useState(persons.map(() => true));
   const [showConfirm, setShowConfirm] = useState(persons.map(() => false));
+  const [showEdit, setShowEdit] = useState(persons.map(() => true));
+  const [showOptions, setShowOptions] = useState(persons.map(() => false));
+  const [showNameChange, setShowNameChange] = useState(persons.map(() => false));
+  const [nameChange, setNameChange] = useState('');
 
   function handleName(event) {
     setNewName(event.target.value);
@@ -30,9 +34,11 @@ export default function App() {
 
     if (persons.some((person) => person.name === newName)) {
       alert(`${newName} is already added in the phonebook.`);
+      setNewName('');
       return;
     } else if (persons.some((person) => person.number === newNum)) {
       alert(`${newNum} is already added in the phonebook.`);
+      setNewNum('');
       return;
     }
     setPersons([...persons, { name: newName, number: newNum, id: persons.length + 1 }]);
@@ -73,7 +79,58 @@ export default function App() {
     );
     setShowDelete(updateDelete);
     setShowConfirm(updateShowConfirm);
+  }
 
+  function handleEdit(value) {
+    const updateEdit = showEdit.map((show, index) =>
+      index === value - 1 ? false : show
+    );
+    const updateOption = showOptions.map((show, index) => 
+      index === value - 1 ? true : show
+    );
+    setShowEdit(updateEdit);
+    setShowOptions(updateOption);
+  }
+
+  function handleNameChange(value) {
+    const updateShowNameChange = showNameChange.map((show, index) =>
+      index === value - 1 ? true : show
+    );
+    const updateOption = showOptions.map((show, index) =>
+      index === value - 1 ? false : show
+    );
+    setShowNameChange(updateShowNameChange);
+    setShowOptions(updateOption);
+  }
+
+  function handleInputNameChange(event) {
+    setNameChange(event.target.value);
+  }
+
+  function handleNameChangeSubmit(event, value) {
+    event.preventDefault();
+
+    if (persons.some((person) => person.name === nameChange)) {
+      alert(`${nameChange} is already present in the phonebook!`);
+      setNameChange('');
+      return;
+    }
+    setPersons(persons.map((person) =>
+      person.id === value ? {...person, name: nameChange} : person
+    ));
+    setNameChange('');
+    const updateShowEdit = showEdit.map((show, index) =>
+      index === value - 1 ? true : show
+    );
+    const updateShowOptions = showOptions.map((show, index) =>
+      index === value - 1 ? false : show
+    );
+    const updateShowNameChange = showNameChange.map((show, index) =>
+      index === value - 1 ? false : show
+    );
+    setShowEdit(updateShowEdit);
+    setShowOptions(updateShowOptions);
+    setShowNameChange(updateShowNameChange);
   }
 
   return (
@@ -92,10 +149,20 @@ export default function App() {
       <div>
         {showList.map((person) => {
           return (
-            <p key={person.id}>
+            <div key={person.id}>
               {person.name} {person.number} 
               {showDelete[person.id - 1] && (
                 <button onClick={() => handleDelete(person.id)}>Delete</button>
+              )}
+              {showEdit[person.id - 1] && (
+                <button onClick={() => handleEdit(person.id)}>Edit</button>
+              )}
+              {showOptions[person.id - 1] && (
+                <div>
+                  Which would you like to edit?
+                  <button onClick={() => handleNameChange(person.id)}>name</button>
+                  <button>number</button>
+                </div>
               )}
               {showConfirm[person.id - 1] && (
                 <div>
@@ -104,7 +171,15 @@ export default function App() {
                   <button onClick={() => handleCancel(person.id)}>No</button>
                 </div>
               )}
-            </p>
+              {showNameChange[person.id - 1] && (
+                <form onSubmit={(event) => handleNameChangeSubmit(event, person.id)}>
+                  <div>
+                    new name: <input type="text" value={nameChange} onChange={handleInputNameChange}/>
+                    <button type="submit">submit</button>
+                  </div>
+                </form>
+              )}
+            </div>
           );
         })}
       </div>
