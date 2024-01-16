@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 
 export default function App() {
   const [persons, setPersons] = useState([
@@ -16,6 +17,20 @@ export default function App() {
   const [showOptions, setShowOptions] = useState(persons.map(() => false));
   const [showNameChange, setShowNameChange] = useState(persons.map(() => false));
   const [nameChange, setNameChange] = useState('');
+
+  const [people, setPeople] = useState([]);
+
+  useEffect(() => {
+    console.log('effect');
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        console.log('promise fulfilled')
+        setPeople(response.data)
+      })
+  }, []);
+  console.log('render', people.length, 'people');
+
 
   function handleName(event) {
     setNewName(event.target.value);
@@ -68,6 +83,9 @@ export default function App() {
       .map((person, index) => ({...person, id: index + 1})));
     setShowDelete((prev) => prev.slice(0, value - 1).concat(prev.slice(value)));
     setShowConfirm((prev) => prev.slice(0, value - 1).concat(prev.slice(value)));
+    setShowEdit((prev) => prev.slice(0, value - 1).concat(prev.slice(value)));
+    setShowOptions((prev) => prev.slice(0, value - 1).concat(prev.slice(value)));
+    setShowNameChange((prev) => prev.slice(0, value - 1).concat(prev.slice(value)));
   }
 
   function handleCancel(value) {
@@ -82,12 +100,10 @@ export default function App() {
   }
 
   function handleEdit(value) {
-    const updateEdit = showEdit.map((show, index) =>
-      index === value - 1 ? false : show
-    );
-    const updateOption = showOptions.map((show, index) => 
-      index === value - 1 ? true : show
-    );
+    const updateEdit = showEdit.map(() => true);
+    const updateOption = showOptions.map(() => false);
+    updateEdit[value - 1] = false;
+    updateOption[value - 1] = true;
     setShowEdit(updateEdit);
     setShowOptions(updateOption);
   }
